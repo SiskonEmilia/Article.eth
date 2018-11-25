@@ -42,12 +42,14 @@ contract AccountSystem {
   function createWriter() public {
     require(writerIndex[msg.sender] == 0);
     writers[writerCounter] = Writer(Account(msg.sender, 0, 0, 0), writerCounter, 0);
+    writerIndex[msg.sender] = writerCounter;
     writerCounter++;
   }
 
   function createPublisher() public {
     require(publisherIndex[msg.sender] == 0);
     publishers[publisherCounter] = Publisher(Account(msg.sender, 0, 0, 0), publisherCounter, 0);
+    publisherIndex[msg.sender] = publisherCounter;
     publisherCounter++;
   }
 
@@ -121,12 +123,12 @@ contract AccountSystem {
 
   function getWriterMailCount(uint index) public view 
   validWriter(index) returns(uint) {
-    return writers[index].account.articleCounter;
+    return writers[index].account.mailCounter;
   }
 
   function getPublisherMailCount(uint index) public view 
   validPublisher(index) returns(uint) {
-    return publishers[index].account.articleCounter;
+    return publishers[index].account.mailCounter;
   }
 
   function _getWriterAt(uint index) internal view 
@@ -169,5 +171,15 @@ contract AccountSystem {
   function getPublisherCreatedOrderAt(uint publisher, uint index) public validPublisher(publisher) view returns(uint) {
     require(index < getPublisherCreatedOrderCount(publisher));
     return publishers[publisher].sentOrders[index];
+  }
+
+  function getWriterMailAt(uint writer, uint index) public view validWriter(writer) returns(uint) {
+    require(index < getWriterMailCount(writer));
+    return writers[writer].account.mails[index];
+  }
+
+  function getPublisherMailAt(uint publisher, uint index) public view validPublisher(publisher) returns(uint) {
+    require(index < getPublisherMailCount(publisher));
+    return publishers[publisher].account.mails[index];
   }
 }

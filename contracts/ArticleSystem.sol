@@ -44,6 +44,6 @@ contract ArticleSystem {
     require(articleIndex < articleCounter);
 
     return (articles[articleIndex].articleContent.length == length &&
-      articles[articleIndex].articleContent.hashedContent == keccak256(abi.encodePacked(sha256(abi.encodePacked(article)))));
+      articles[articleIndex].articleContent.hashedContent == keccak256(abi.encodePacked(keccak256(abi.encodePacked(article)))));
   }
 }

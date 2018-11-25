@@ -34,7 +34,12 @@ contract ControlBus is ArticleSystem, AccountSystem, OrderSystem, MailSystem {
 
   // Order Managemenet //
   function createOrder(address writer) public payable {
-    _createOrder(writer, msg.value);
+    uint indexOfWriter = getWriterIndex(writer);
+    uint indexOfPublisher = getPublisherIndex(msg.sender);
+    uint indexOfOrder = _createOrder(writer, msg.value);
+
+    writers[indexOfWriter].account.orders[writers[indexOfWriter].account.orderCounter++] = indexOfOrder;
+    publishers[indexOfPublisher].sentOrders[publishers[indexOfPublisher].orderCounter++] = indexOfOrder;
   }
 
   // articleIndex: index of article in the writer's owned article list
@@ -65,8 +70,8 @@ contract ControlBus is ArticleSystem, AccountSystem, OrderSystem, MailSystem {
     uint recvPublisher = publisherIndex[receiver];
 
     
-    require(sendWriter != 0 && sendPublisher != 0);
-    require(recvPublisher != 0 && recvWriter != 0);
+    require(sendWriter != 0 || sendPublisher != 0);
+    require(recvPublisher != 0 || recvWriter != 0);
     uint index = _sendMail(receiver, content);
     
     if (sendWriter != 0) {

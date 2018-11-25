@@ -13,8 +13,9 @@ contract OrderSystem {
   uint internal orderCounter = 0;
   mapping (uint => Order) internal orders;
 
-  function _createOrder(address writer, uint price) internal {
-    orders[orderCounter++] = Order(writer, msg.sender, price, State.unfinished);
+  function _createOrder(address writer, uint price) internal returns(uint) {
+    orders[orderCounter] = Order(writer, msg.sender, price, State.unfinished);
+    return orderCounter++;
   }
 
   function _finishOrder(uint index) internal {
@@ -30,8 +31,8 @@ contract OrderSystem {
     return orders[index];
   }
 
-  function getOrder(uint index) internal view returns(Order order) {
+  function getOrder(uint index) public view returns(address, address, uint, bool) {
     require(index < orderCounter);
-    return orders[index];
+    return (orders[index].seller, orders[index].buyer, orders[index].price, orders[index].state == State.finished);
   }
 }
