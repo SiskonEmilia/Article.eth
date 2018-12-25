@@ -54,4 +54,4 @@ npm run dev
 
 虽然我们已经成功部署了项目，但是想要使用，我们还需要一些配置。在本项目中，我们使用了 **MetaMask** 来管理用户的以太币账户，在您开始使用项目前，您需要首先完成 MetaMask 的配置。对于 Chrome 用户，您可以 [Google Chrome 拓展商店](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn) 获取到 MetaMask 插件。完成安装后，根据插件的提示进行账户配置，直到看到以下界面，您就完成了所需的配置：
 
-![](Images/ConfigMetaMask.png)
+![ConfigMetaMask](/Assets/Images/ConfigMetaMask.png)
