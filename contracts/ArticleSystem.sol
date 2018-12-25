@@ -29,9 +29,9 @@ contract ArticleSystem {
       return articleCounter++;
   }
 
-  function getArticle(uint articleIndex) public view returns(string) {
+  function getArticle(uint articleIndex) public view returns(address, string) {
     require(articleIndex < articleCounter);
-    return articles[articleIndex].articleContent.headContent;
+    return (articles[articleIndex].writer, articles[articleIndex].articleContent.headContent);
   }
 
   function _changeOwner(uint articleIndex, address targetOwner) internal {

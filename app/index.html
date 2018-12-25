@@ -1,23 +1,390 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>MetaCoin - Truffle Webpack Demo w/ Frontend</title>
-  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-  <script src="./app.js"></script>
+  <title>Article.eth</title>
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/base.css">
+  <script src="https://unpkg.com/element-ui@2.4.11/lib/index.js"></script>
 </head>
-<body>
-  <h1>MetaCoin</h1>
-  <h2>Example Truffle Dapp</h2>
-  <h3>You have <span class="black"><span id="balance"></span> META</span></h3>
+  <body>
+    <div id="main">
+      <!--Login Dialog-->
+      <el-dialog id="loginDialog" title="Welcome to Article.eth" :visible.sync="loginDialogVisible" center
+        :close-on-click-modal=false :close-on-press-escape=false :show-close=false>
+        <el-button type="primary" class="loginButton" 
+          :loading="isWriterLoading" v-bind:disabled="isPublisherLoading"
+          @click="writerClicked">Login as Writer</el-button>
+        <el-button type="success" class="loginButton" 
+          :loading="isPublisherLoading" v-bind:disabled="isWriterLoading"
+          @click="publisherClicked">Login as Publisher</el-button>
+      </el-dialog>
 
-  <br>
-  <h1>Send MetaCoin</h1>
-  <br><label for="amount">Amount:</label><input type="text" id="amount" placeholder="e.g., 95"></input>
-  <br><label for="receiver">To Address:</label><input type="text" id="receiver" placeholder="e.g., 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"></input>
-  <br><br><button id="send" onclick="App.sendCoin()">Send MetaCoin</button>
-  <br><br>
-  <span id="status"></span>
-  <br>
-  <span class="hint"><strong>Hint:</strong> open the browser developer console to view any errors and warnings.</span>
-</body>
+      <!--Main UI-->
+      <el-container id="mainContainer">
+        <el-aside>
+          <div style=" height: 100px; width: 90%; margin: 0 5% 10% 5%;
+            border-style: solid; border-color: #00000033; border-width: 0px 0px 1px 0px">
+            <div class="logoContainer" style="
+              height: 100px;">
+              <div class="verticalCenter">
+                <img width="50px" src="./img/icon.png" style="opacity: 0.8; cursor: pointer;" 
+                @click="homeButtonClicked"/>
+              </div>
+            </div>
+          </div>
+          <el-menu
+            :default-active="'0'"
+            background-color="#545c6400"
+            @select="handleMenuSelect">
+            <el-menu-item index="1" v-bind:disabled="!loginStatus">
+              <i class="el-icon-document"></i>
+              <span slot="title">Article System</span>
+            </el-menu-item>
+            <el-menu-item index="2" v-bind:disabled="!loginStatus">
+              <i class="el-icon-goods"></i>
+              <span slot="title">Order System</span>
+            </el-menu-item>
+            <el-menu-item index="3" v-bind:disabled="!loginStatus">
+              <i class="el-icon-message"></i>
+              <span slot="title">Mail System</span>
+            </el-menu-item>
+            <el-menu-item index="4">
+              <i class="el-icon-info"></i>
+              <span slot="title">User List</span>
+            </el-menu-item>
+          </el-menu>
+        </el-aside>
+        <el-main style="position: relative;" id="scrollContainer" v-loading="mainLoading">
+          <!--Logo-->
+          <transition name="el-fade-in" appear>
+            <div v-show="currentSystem === '0'" class="logoContainer" style="position: absolute;">
+              <div class="verticalCenter" style="opacity: 0.5;">
+                <img width="300px" src="./img/icon.png"/>
+                <div id="Welcome">
+                  Article.eth
+                </div>
+              </div>
+            </div>
+          </transition>
+
+          <!--Article System-->
+
+          <!--Tab: Owned / Created-->
+          <transition name="el-fade-in" appear>
+            <el-tabs v-show="currentSystem === '1'" v-model="activeArticleLabel"
+              @tab-click="articleTabClicked" style="position:fixed;">
+              <el-tab-pane label="Owned" name="owned"></el-tab-pane>
+              <el-tab-pane label="Created" name="created" :disabled="accountType !== 0"></el-tab-pane>
+            </el-tabs>
+          </transition>
+
+          <!--Article List-->
+          <div style="position: absolute; width: calc(100% - 40px); top: 80px;">
+            <transition-group name="el-fade-in" appear enter leave>
+              <el-card v-show="currentSystem === '1'"
+                v-for="article in articles" class="article-card" :key="article.articleId">
+                  <div slot="header" class="clearfix">
+                    <div class="article-title">{{ article.title }}</div>
+                    <div class="article-author">{{ article.author }}</div>
+                    <el-button style="position: absolute; top: 12px; right: 20px; font-size: 20px;" type="text"
+                      @click="verifyClicked(article.articleId)">Verify</el-button>
+                  </div>
+                  <div class="article-content">
+                    {{ article.content }}
+                  </div>
+              </el-card>
+            </transition-group>
+          </div>
+
+          <!--Create Article Button-->
+          <transition name="el-fade-in" appear>
+            <el-button type="warning" icon="el-icon-edit" circle
+              style="
+              position:absolute; 
+              right: 120px; 
+              bottom: 100px;
+              transform: scale(2)" size="medium"
+              v-show="currentSystem === '1' && activeArticleLabel === 'created'"
+              @click="writingDialogVisible = true"></el-button>
+          </transition>
+
+          <!--Writing Dialog-->
+          <el-dialog id="writingDialog" title="Write Article" :visible.sync="writingDialogVisible">
+              <el-form label-position="top" label-width="80px" :model="newArticle" ref="newArticleForm">
+                <el-form-item label="Title" prop="title" :rules="
+                [{ required: true, message: 'Title field cannot stay empty.'}]">
+                  <el-input v-model="newArticle.title"></el-input>
+                </el-form-item>
+                <el-form-item label="Maximum visible Words Count" prop="limit" :rules="
+                  [{ required: true, message: 'You must specify how many words at most are visible to the public.'},
+                  { type: 'number', message: 'This count must be a number.'}]">
+                  <el-input v-model.number="newArticle.limit"></el-input>
+                </el-form-item>
+                <el-form-item label="Content" prop="content" :rules="
+                  [{ required: true, message: 'There must be some content in your article.'}]">
+                  <el-input v-model="newArticle.content" type="textarea" autosize></el-input>
+                </el-form-item>
+              </el-form>
+            
+              <div slot="footer" class="dialog-footer">
+                <el-button @click="writingDialogVisible = false">Cancel</el-button>
+                <el-button type="primary" @click="createArticle">Create</el-button>
+              </div>
+          </el-dialog>
+
+          <!--Verify Dialog-->
+          <el-dialog id="verifyDialog" title="Verify Article" :visible.sync="verifyDialogVisible">
+            <el-form label-position="top" label-width="80px" :model="toVerify" ref="verifyForm">
+              <el-form-item label="Title" prop="title" :rules="
+              [{ required: true, message: 'Title field cannot stay empty.'}]">
+                <el-input v-model="toVerify.title"></el-input>
+              </el-form-item>
+              <el-form-item label="Content" prop="content" :rules="
+                [{ required: true, message: 'There must be some content in this article.'}]">
+                <el-input v-model="toVerify.content" type="textarea" autosize></el-input>
+              </el-form-item>
+            </el-form>
+          
+            <div slot="footer" class="dialog-footer">
+              <el-button type="primary" @click="verifyArticle">Verify</el-button>
+            </div>
+          </el-dialog>
+
+          <!--Order System-->
+
+          <!--Tab: Received / Sent-->
+          <transition name="el-fade-in" appear>
+            <el-tabs v-show="currentSystem === '2'" v-model="activeOrderLabel"
+              @tab-click="orderTabClicked" style="position:fixed;">
+              <el-tab-pane label="Received" name="received"></el-tab-pane>
+              <el-tab-pane label="Sent" name="sent" :disabled="accountType !== 1"></el-tab-pane>
+            </el-tabs>
+          </transition>
+
+          <!--Order List-->
+          <div style="position: absolute; width: calc(100% - 40px); top: 80px;">
+            <transition-group name="el-fade-in" appear enter leave>
+              <el-card v-show="currentSystem === '2'"
+                v-for="order in orders" class="article-card" :key="order.orderId"
+                style="position: relative;">
+                  <div slot="header" class="clearfix">
+                    <div>
+                      <div class="order-from-label" style="border-bottom: 1px solid rgba(0,0,0,0.2);">FROM</div>
+                      <div class="order-from">{{ order.from }}</div>
+                    </div>
+                    <div>
+                      <div class="order-to-label">TO</div>
+                      <div class="order-to">{{ order.to }}</div>
+                    </div>
+                    <transition name="el-fade-in" appear>
+                      <el-button style="
+                        position: absolute;
+                        top: 10px;
+                        right: 20px;
+                        font-size: 26px;" type="text"
+                        @click="finishClicked(order.orderId, order.price)" v-show="activeOrderLabel === 'received'" :disabled="order.isDone">Finish</el-button>
+                    </transition>
+                    <transition name="el-fade-in" appear>
+                      <el-button style="
+                        position: absolute;
+                        top: 10px;
+                        right: 20px;
+                        font-size: 26px;" type="text"
+                        disabled v-show="activeOrderLabel === 'sent' && order.isDone">Done</el-button>
+                    </transition>
+                  </div>
+                  <div class="order-price-label">ETH</div>
+                  <div class="order-price">
+                    {{ order.price }}
+                  </div>
+              </el-card>
+            </transition-group>
+          </div>
+
+          <!--Sending Order Dialog-->
+          <el-dialog id="sendingDialog" title="Send Order" :visible.sync="sendingOrderDialogVisible">
+            <el-form label-position="top" label-width="80px" :model="newOrder" ref="sendOrderForm">
+              <el-form-item label="To Account Address" prop="to" :rules="
+              [{ required: true, message: 'To account address cannot stay empty.'}]">
+                <el-input v-model="newOrder.to"></el-input>
+              </el-form-item>
+              <el-form-item label="Price" prop="price" :rules="
+                [{ required: true, message: 'You must specify the number of eth you would like to pay.'},
+                { type: 'number', message: 'This price must be a number.'}]">
+                <el-input v-model.number="newOrder.price">
+                  <template slot="append">eth</template>
+                </el-input>
+              </el-form-item>
+            </el-form>
+          
+            <div slot="footer" class="dialog-footer">
+              <el-button @click="sendingOrderDialogVisible = false">Cancel</el-button>
+              <el-button type="primary" @click="sendOrder">Send</el-button>
+            </div>
+          </el-dialog>
+
+          <!--Send Order Button-->
+          <transition name="el-fade-in" appear>
+            <el-button type="warning" icon="el-icon-plus" circle
+              style="
+              position:absolute; 
+              right: 120px; 
+              bottom: 100px;
+              transform: scale(2)" size="medium"
+              v-show="currentSystem === '2' && activeOrderLabel === 'sent'"
+              @click="sendingOrderDialogVisible = true"></el-button>
+          </transition>
+
+          <!--Finish Order Dialog-->
+          <el-dialog id="finishingDialog" title="Choose An Article to Finish This Order" :visible.sync="finishingOrderDialogVisible">
+            <el-table :data="ownedArticles" highlight-current-row @current-change="handleChooseChanged" height="400" :loading="chooseLoading" empty-text="No Data">
+              <el-table-column type="index" width="50"></el-table-column>
+              <el-table-column property="title" label="Title"></el-table-column>
+              <el-table-column property="author" label="Author"></el-table-column>
+              <el-table-column property="content" label="Content"></el-table-column>
+            </el-table>
+          
+            <div slot="footer" class="dialog-footer">
+              <el-button @click="finishingOrderDialogVisible = false">Cancel</el-button>
+              <el-button type="primary" @click="finishOrder">Finish</el-button>
+            </div>
+          </el-dialog>
+
+          <!--Mail System-->
+
+          <!--Mail List-->
+          <div style="position: absolute; width: calc(100% - 40px); top: 20px;">
+            <transition-group name="el-fade-in" appear enter leave>
+              <el-card v-show="currentSystem === '3'"
+                v-for="mail in mails" class="article-card" :key="mail.mailId"
+                style="position: relative;">
+                  <div slot="header" class="clearfix">
+                    <div>
+                      <div class="order-from-label" style="border-bottom: 1px solid rgba(0,0,0,0.2);">FROM</div>
+                      <div class="order-from">{{ mail.from }}</div>
+                    </div>
+                    <div>
+                      <div class="order-to-label">TO</div>
+                      <div class="order-to">{{ mail.to }}</div>
+                    </div>
+                  </div>
+                  <div class="article-content">
+                      {{ mail.content }}
+                  </div>
+              </el-card>
+            </transition-group>
+          </div>
+
+          <!--Write Mail Button-->
+          <transition name="el-fade-in" appear>
+              <el-button type="warning" icon="el-icon-edit" circle
+                style="
+                position:absolute; 
+                right: 120px; 
+                bottom: 100px;
+                transform: scale(2)" size="medium"
+                v-show="currentSystem === '3'"
+                @click="writingMailDialogVisible = true"></el-button>
+            </transition>
+
+          <!--Write Mail Dialog-->
+          <el-dialog id="sendingMailDialog" title="Send Mail" :visible.sync="writingMailDialogVisible">
+            <el-form label-position="top" label-width="80px" :model="newMail" ref="sendMailForm">
+              <el-form-item label="To Account Address" prop="to" :rules="
+              [{ required: true, message: 'To account address cannot stay empty.'}]">
+                <el-input v-model="newMail.to" placeholder="Type in the target address here..."></el-input>
+              </el-form-item>
+              <el-form-item label="Content" prop="content" :rules="
+                [{ required: true, message: 'You must type some words here.'}]">
+                <el-input
+                  type="textarea"
+                  autosize
+                  placeholder="Type in your mail content here..."
+                  v-model="newMail.content"></el-input>
+              </el-form-item>
+            </el-form>
+          
+            <div slot="footer" class="dialog-footer">
+              <el-button @click="writingMailDialogVisible = false">Cancel</el-button>
+              <el-button type="primary" @click="sendMail">Send</el-button>
+            </div>
+          </el-dialog>
+
+          <!--TODO: User System-->
+          <!--Tab: Received / Sent-->
+          <transition name="el-fade-in" appear>
+            <el-tabs v-show="currentSystem === '4'" v-model="activeUserLabel"
+              @tab-click="userTabClicked" style="position:fixed;">
+              <el-tab-pane label="Writers" name="writers"></el-tab-pane>
+              <el-tab-pane label="Publishers" name="publishers"></el-tab-pane>
+            </el-tabs>
+          </transition>
+
+          <!--User List-->
+          <div style="position: absolute; width: calc(100% - 40px); top: 80px;">
+            <transition-group name="el-fade-in" appear enter leave>
+              <el-card v-show="currentSystem === '4'"
+                v-for="user in users" class="article-card" :key="user.userId"
+                style="position: relative;">
+                  <div slot="header" class="clearfix">
+                    <div>
+                      <div class="order-to-label" style="width: auto; margin-right: 10px;">ADDRESS</div>
+                      <div class="order-to">{{ user.address }}</div>
+                    </div>
+                    <transition name="el-fade-in" appear>
+                      <el-button style="
+                        position: absolute;
+                        top: 12px;
+                        right: 20px;
+                        font-size: 26px;" type="text"
+                        @click="viewDetail(user.userId)">Detail</el-button>
+                    </transition>
+                  </div>
+                  
+                  <div style="border-bottom: 1px solid rgba(0,0,0,0.2);">
+                    <div class="user-count-label">{{ userListLabel1 }}</div>
+                    <div class="user-count">
+                      {{ user.count1 }}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="user-count-label">{{ userListLabel2 }}</div>
+                    <div class="user-count">
+                      {{ user.count2 }}
+                    </div>
+                  </div>
+
+              </el-card>
+            </transition-group>
+          </div>
+
+          <!--Writer Detail Dialog-->
+          <el-dialog id="writerDetailDialog" title="Writer Article Detail" :visible.sync="writerDetailDialogVisible">
+            <el-table :data="writerDetail" height="500" :loading="writerDetailLoading" empty-text="No Data">
+              <el-table-column type="index" width="50"></el-table-column>
+              <el-table-column property="title" label="Title"></el-table-column>
+              <el-table-column property="author" label="Author"></el-table-column>
+              <el-table-column property="content" label="Content"></el-table-column>
+            </el-table>
+          </el-dialog>
+
+          <!--Publisher Detail Dialog-->
+          <el-dialog id="publisherDetailDialog" title="Publisher Order Detail" :visible.sync="publisherDetailDialogVisible">
+            <el-table :data="publisherDetail" height="500" :loading="publisherDetailLoading" empty-text="No Data">
+              <el-table-column type="index" width="50"></el-table-column>
+              <el-table-column property="from" label="From Address"></el-table-column>
+              <el-table-column property="to" label="To Address"></el-table-column>
+              <el-table-column property="price" label="Value"></el-table-column>
+              <el-table-column property="isDone" label="Finished" width="100"></el-table-column>
+            </el-table>
+          </el-dialog>
+
+        </el-main>
+      </el-container>
+    </div>
+  </body>
+
+  <script src="app.js"></script>
 </html>

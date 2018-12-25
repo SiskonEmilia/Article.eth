@@ -26,6 +26,10 @@ module.exports = {
           presets: ['env'],
           plugins: ['transform-react-jsx', 'transform-object-rest-spread', 'transform-runtime']
         }
+      },
+      {
+        test: /\.(png|jpg)$/,
+        loader: 'url-loader?limit=8192&name=img/[name].[ext]'
       }
     ]
   }

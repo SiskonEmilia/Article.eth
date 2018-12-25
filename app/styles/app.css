@@ -1,52 +1,163 @@
-body {
-  margin-left: 25%;
-  margin-right: 25%;
-  margin-top: 10%;
-  font-family: "Open Sans", sans-serif;
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
 }
 
-label {
+body {
+  background-image: url('../img/bgimage.png');
+  background-position: center center;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-size: cover;
+}
+
+#main, #mainContainer {
+  height: 100%;
+}
+
+.el-aside {
+  position:fixed; 
+  left:0; 
+  top:0;
+  color: #333;
+  height: 100%;
+  width: 20%;
+  background-color: rgba(255, 254, 254, 0.56);
+}
+
+.el-main {
+  margin-left: 300px;
+  height: 100%;
+  background-color: rgba(255, 250, 250, 0.28);
+}
+
+.logoContainer {
+  width: 100%;
+  height: 90%;
+  display: table;
+}
+
+.verticalCenter {
+  width: 100%;
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.clearfix:before,
+.clearfix:after {
+  display: table;
+  content: "";
+}
+
+.el-card__header {
+  position: relative;
+}
+
+.article-card {
+  margin: 1%;
+  width: 98%;
+}
+
+.article-title {
+  color: black;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.article-author {
+  color: darkgray;
+  font-size: 20px;
+}
+
+.article-content {
+  font-size: 20px;
+}
+
+.order-from-label, .order-to-label {
   display: inline-block;
+  font-weight: bold;
+  font-size: 28px;
+  width: 100px;
+  margin-right: 20px;
+  color: rgba(0, 0, 0, 0.61);
+}
+
+.order-price-label {
+  display: inline-block;
+  font-weight: bold;
+  font-size: 28px;
   width: 100px;
 }
 
-input {
-  width: 500px;
-  padding: 5px;
-  font-size: 16px;
-}
-
-button {
-  font-size: 16px;
-  padding: 5px;
-}
-
-h1, h2 {
+.order-price {
   display: inline-block;
-  vertical-align: middle;
-  margin-top: 0px;
-  margin-bottom: 10px;
+  font-weight: bold;
+  font-size: 28px;
+  position: absolute;
+  right: 0;
+  width: 100%;
+  text-align: right;
+  padding-right: 20px;
 }
 
-h2 {
-  color: #AAA;
-  font-size: 32px;
+.order-from, .order-to {
+  display: inline-block;
+  font-weight: bold;
+  font-size: 28px;
+  color: darkgray;
 }
 
-h3 {
-  font-weight: normal;
-  color: #AAA;
-  font-size: 24px;
+.loginButton, .loginButton+.loginButton {
+  display: block;
+  width: 90%;
+  margin: 3% 5%;
+  height: 90px;
+  font-size: 26px;
+  font-weight: 300;
 }
 
-.black {
-  color: black;
+.el-dialog__header {
+  padding-top: 36px;
+  text-align: center;
 }
 
-#balance {
-  color: black;
+.el-dialog__title {
+  font-size: 28px;
 }
 
-.hint {
-  color: #666;
+.user-count-label {
+  display: inline-block;
+  font-weight: bold;
+  font-size: 20px;
+  line-height: 40px;
 }
+
+.user-count {
+  display: inline-block;
+  font-weight: bold;
+  font-size: 28px;
+  position: absolute;
+  right: 0;
+  width: 100%;
+  text-align: right;
+  padding-right: 20px;
+}
+
+#Welcome {
+  color: rgba(255, 255, 255, 0.87);
+  margin-top: 20px;
+  font-family: sans-serif;
+  text-shadow: 1.5px 1.5px 1.5px gray;
+  font-size: 50px;
+  line-height: 1.5;
+  margin-bottom: 4px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.ImportedImages {
+  background-image: url(../img/icon.png);
+}
+

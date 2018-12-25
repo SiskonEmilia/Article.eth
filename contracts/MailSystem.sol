@@ -20,4 +20,10 @@ contract MailSystem {
     require(mails[index].receiver == msg.sender || mails[index].sender == msg.sender);
     return mails[index].content;
   }
+
+  function getMail(uint index) public view returns(address, address, string) {
+    require(index < mailCounter);
+    require(mails[index].receiver == msg.sender || mails[index].sender == msg.sender);
+    return (mails[index].sender, mails[index].receiver, mails[index].content);
+  }
 }
