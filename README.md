@@ -8,7 +8,7 @@ Article.eth 是一款服务于自由作家和文字作品版权的去中心化�
 
 #### 运行环境
 
-本项目在搭载 MacOS Mojave 的 MacBook Pro 2017 平台 和 搭载 Windows 10 的 Intel i7-4720HQ 平台 上完成测试。部署前软件环境要求：
+本项目在搭载 MacOS Mojave 的 MacBook Pro 2017 平台 和 搭载 Windows 10 的 Intel i7-4720HQ 平台 上完成测试。部署前软件环境要求：
 
 - Node.js Runtime
 - npm
